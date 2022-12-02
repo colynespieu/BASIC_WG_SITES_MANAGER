@@ -1,0 +1,7 @@
+certs/*
+!certs
+exports/*
+!exports
+sites/*
+!sites
+conf.json

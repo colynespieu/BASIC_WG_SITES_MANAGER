@@ -1,0 +1,9 @@
+[Interface]
+Address = {{ value.address }}
+PrivateKey = {{ value.privateKey }}
+
+[Peer]
+PublicKey = {{ value.publicKey }}
+AllowedIPs = {{ value.allowIPs }}
+Endpoint = {{ value.serverIP }}:{{ value.serverPort }}
+PersistentKeepalive = 30
