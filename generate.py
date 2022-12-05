@@ -140,13 +140,25 @@ def deploy_wireguard_configuration_routeros(password):
         command=f"/interface/wireguard/add listen-port={site_values['server']['port']} private-key=\"{cert_values['private_key']}\" name={site_values['server']['type_info']['interface_name']}"
         pass_command_ssh(username,password,host,port,command)
         deploy_wireguard_configuration_routeros(password)
-            
+    serveur_wg_private_ip = get_server_private_ip(site_values)
+    command=f"/ip/address/print detail where interface ={site_values['server']['type_info']['interface_name']} and address=\"{serveur_wg_private_ip}\""
+    ip_addr_list_print = pass_command_ssh(username,password,host,port,command)
+    for ip_addr_print in ip_addr_list_print.split("\r\n\r\n"):
+        if not find_arg_routeros_print(ip_addr_print,"address",serveur_wg_private_ip):
+            command=f"/ip/address/add interface={site_values['server']['type_info']['interface_name']} address=\"{serveur_wg_private_ip}\""
+            pass_command_ssh(username,password,host,port,command)
+              
 def find_arg_routeros_print(printv,valuename,value):
     for arg in printv.split():
         if arg.split("=")[0] == valuename:
             if ((arg.split("=")[1] == value) or (re.findall('"([^"]*)"', arg)[0] == value)) :
                 return(True)
     return(False)
+
+def get_server_private_ip(site_values):
+    for ip_addr_wg in site_values["used_ips"]:
+        if site_values["server"]["name"] == site_values["used_ips"][ip_addr_wg]:
+            return(ip_addr_wg)
 
 def generate_conf_files():
     site_values = json_file_read(f"{sites_path}/{sitename}.json")
@@ -197,23 +209,16 @@ def router():
             print()
             generate_wireguard_cert(sys.argv[2])
             add_wireguard_host(sys.argv[2])
-            pass
         elif sys.argv[1] == "generate-conf":
             generate_conf_files()
-            pass
         elif sys.argv[1] == "delete-cert":
             delete_wireguard_cert(sys.argv[2])
             del_wireguard_host(sys.argv[2])
-            pass
         elif sys.argv[1] == "deploy-conf":
             deploy_wireguard_configuration_routeros(getpass(f"Mot de passe du routeur du site : "))
-            pass
         elif sys.argv[1] == "print-global-conf":
             print_wireguard_values()
-            pass
         elif sys.argv[1] == "print-exported-conf":
             print_wireguard_exported_conf()
-            pass
-
 sitename = get_sitename()
 router()
