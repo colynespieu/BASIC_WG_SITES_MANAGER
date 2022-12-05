@@ -165,9 +165,12 @@ def generate_conf_files():
             f.write(template.render(value=values))
        
 def print_wireguard_exported_conf():
-    with open(f"{exports_path}/{sitename}/{sys.argv[2]}.conf", "r") as exportedfile:
-        conf = exportedfile.read()
-    print(conf)
+    if os.path.exists(f"{exports_path}/{sitename}/{sys.argv[2]}.conf"):
+        with open(f"{exports_path}/{sitename}/{sys.argv[2]}.conf", "r") as exportedfile:
+            conf = exportedfile.read()
+        print(conf)
+    else:
+        print(f"Le fichier {sys.argv[2]}.conf n'existe pas")
 
 def print_wireguard_values():
     site_values = json_file_read(f"{sites_path}/{sitename}.json")
