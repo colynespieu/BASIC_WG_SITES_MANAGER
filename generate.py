@@ -107,7 +107,7 @@ def deploy_wireguard_configuration_routeros(password):
             isprkey = find_arg_routeros_print(interface_wireguard_print,"private-key",cert_values["private_key"])
             ispukey = find_arg_routeros_print(interface_wireguard_print,"public-key",cert_values["public_key"])
             if (islport and isprkey and ispukey):
-                listactivecert = [] 
+                listactivecert = []
                 for peer_wireguard in peers_wireguard_print.split("\r\n\r\n"):
                     peer_exist = False
                     for cert in site_values["used_ips"]:
@@ -164,6 +164,11 @@ def generate_conf_files():
         with io.open(f"{exports_path}/{sitename}/{site_values['used_ips'][cert]}.conf", 'w',encoding='utf8') as f:
             f.write(template.render(value=values))
        
+def print_wireguard_exported_conf():
+    with open(f"{exports_path}/{sitename}/{sys.argv[2]}.conf", "r") as exportedfile:
+        conf = exportedfile.read()
+    print(conf)
+
 def print_wireguard_values():
     site_values = json_file_read(f"{sites_path}/{sitename}.json")
     print("CONFIGURATION DU SITE :")
@@ -174,7 +179,7 @@ def print_wireguard_values():
         print(json.dumps(cert_values,indent = 4))
         
 def router():
-    listcmd = {"generate-cert":3,"delete-cert":3,"generate-conf":2,"deploy-conf":2,"print-conf":2}
+    listcmd = {"generate-cert":3,"delete-cert":3,"generate-conf":2,"deploy-conf":2,"print-exported-conf":3,"print-global-conf":2}
     if len(sys.argv) < 2 or not sys.argv[1] in listcmd or not len(sys.argv)==listcmd[sys.argv[1]]:
         print(f"Usage: {__file__.split('/')[len(__file__.split('/'))-1]} OBJECT [name]")
         print(f"OBJECT :")
@@ -182,7 +187,8 @@ def router():
         print(f"        delete-cert [name]")
         print(f"        generate-conf")
         print(f"        deploy-conf")
-        print(f"        print-conf")
+        print(f"        print-exported-conf [name]")
+        print(f"        print-global-conf")
     else:
         if sys.argv[1] == "generate-cert" :
             print()
@@ -199,8 +205,11 @@ def router():
         elif sys.argv[1] == "deploy-conf":
             deploy_wireguard_configuration_routeros(getpass(f"Mot de passe du routeur du site : "))
             pass
-        elif sys.argv[1] == "print-conf":
+        elif sys.argv[1] == "print-global-conf":
             print_wireguard_values()
+            pass
+        elif sys.argv[1] == "print-exported-conf":
+            print_wireguard_exported_conf()
             pass
 
 sitename = get_sitename()
