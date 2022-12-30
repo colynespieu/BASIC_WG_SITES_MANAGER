@@ -1,0 +1,15 @@
+{
+    "subnet": "",
+    "server": {
+        "name": "",
+        "IP": "",
+        "port": "",
+        "type": "",
+        "type_info": {
+        }
+    },
+    "client_allowed_ip": [
+    ],
+    "used_ips": {
+    }
+}
