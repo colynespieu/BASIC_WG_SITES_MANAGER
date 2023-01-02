@@ -41,7 +41,7 @@ def create_config_file(sitename,gconf):
     subnet = str(input("Subnet (10.40.10.0/24) : ") or "10.40.10.0/24")
     routerip = subnet.split("/")[0][:len(subnet.split("/")[0])-1]+"1"
     name = str(input("Router name (default_router) : ") or "default_router")
-    IP = str(input("Router IP (192.168.1.1) : ") or "192.168.1.1")
+    IP = str(input("Router public IP (185.62.2.1) : ") or "185.62.2.1")
     port = str(input("Wireguard port (51820) : ") or "51820")
     type = str(input("Wireguard os type (routeros) : ") or "routeros")
     client_allowed_ip = []
