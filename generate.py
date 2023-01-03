@@ -18,10 +18,14 @@ exports_path = base_path+"exports/"
 
 
 def get_sitenames():
-    print("Liste des sites disponibles : ")
+    print(f"Current site : ")
+    print(f"        {sitename}")
+    print()
+    print("Sites availables : ")
     for site_file in os.listdir(sites_path):
         if (site_file.split(".")[len(site_file.split("."))-1] == "json"):
             print(f"        {site_file[:-5]}")
+    print()
     pass
 
 def get_current_sitename():
