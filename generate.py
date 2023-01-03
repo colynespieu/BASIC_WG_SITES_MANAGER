@@ -1,9 +1,11 @@
 #!/usr/bin/python3
+import ipaddress
 from jinja2 import Environment, FileSystemLoader
 from warnings import filterwarnings
 filterwarnings("ignore")
 import os,scp,subprocess,json,paramiko,io,sys,re
 from getpass import getpass
+
 
 global base_path, conffile, certs_path, sites_path, templates_path, export_path, sitename
 
@@ -26,7 +28,6 @@ def set_current_sitename(sitename):
     gconf["site"]=sitename
     with open(conffile, "w") as jsonfile:
         json.dump(gconf, jsonfile,indent = 4)
-    pass
 
 def create_site(sitename):
     globals()["sitename"] = sitename
@@ -35,6 +36,12 @@ def create_site(sitename):
     with open(f"{templates_path}site_config.json", "r") as jsontemplatefile:
         gconf = json.loads(jsontemplatefile.read())
     create_config_file(sitename,gconf)
+
+def delete_site(sitename):
+    globals()["sitename"] = sitename
+    os.rmdir(f"{certs_path}{sitename}")
+    os.rmdir(f"{exports_path}{sitename}")
+    os.rmdir(f"{sites_path}/{sitename}.json")
     pass
 
 def create_config_file(sitename,gconf):
@@ -43,7 +50,7 @@ def create_config_file(sitename,gconf):
     name = str(input("Router name (default_router) : ") or "default_router")
     IP = str(input("Router public IP (185.62.2.1) : ") or "185.62.2.1")
     port = str(input("Wireguard port (51820) : ") or "51820")
-    type = str(input("Wireguard os type (routeros) : ") or "routeros")
+    type = str(input("Wireguard Server os type (routeros) : ") or "routeros")
     client_allowed_ip = []
     while True:
         tmp_client_allowed_ip = input("Entrer un sous-réseau accéssible via le VPN (example : 192.168.1.0/24) :") or False
@@ -114,20 +121,18 @@ def delete_wireguard_cert(certname):
 
 def add_wireguard_host(host):
     site_values = json_file_read(f"{sites_path}/{sitename}.json")
-    maxincrement = 0
     if "used_ips" in site_values:
+        used_ip_list = []
         for ips in site_values["used_ips"]:
-            if int(maxincrement) < int(ips.split(".")[3]):
-                maxincrement = ips.split(".")[3]
+            used_ip_list.append(ips)
             if site_values["used_ips"][ips] == host:
                 print(f"Le cert '{host}' existe déja !")
                 return
-    if site_values["subnet"].split("/")[0].replace(".","").isdigit():
-        tmp_list=site_values["subnet"].split("/")[0].split(".")
-        host_ip=f"{tmp_list[0]}.{tmp_list[1]}.{tmp_list[2]}.{str(int(maxincrement)+1)}"
-    else:
-        print(f"Le subnet '{site_values['subnet']}' n'est pas correcte !")
-        return
+    network_hosts = ipaddress.ip_network(site_values["subnet"]).hosts()
+    for hostadd in network_hosts:
+        if str(hostadd) not in used_ip_list:
+            host_ip = str(hostadd)
+            break
     site_values["used_ips"][host_ip]=host
     json_file_save(f"{sites_path}/{sitename}.json",site_values)
 
@@ -249,7 +254,7 @@ def router_site_mgn():
     pass
 
 def router():
-    listcmd = {"generate-cert":3,"delete-cert":3,"generate-conf":2,"deploy-conf":2,"print-exported-conf":3,"print-global-conf":2,"create_site":3,"change_current_site":3}
+    listcmd = {"generate-cert":3,"delete-cert":3,"generate-conf":2,"deploy-conf":2,"print-exported-conf":3,"print-global-conf":2,"create_site":3,"delete_site":3,"change_current_site":3}
     if len(sys.argv) < 2 or not sys.argv[1] in listcmd or not len(sys.argv)==listcmd[sys.argv[1]]:
         print(f"Usage: {__file__.split('/')[len(__file__.split('/'))-1]} OBJECT [name]")
         print(f"OBJECT :")
@@ -258,6 +263,7 @@ def router():
         print(f"        generate-conf")
         print(f"        deploy-conf")
         print(f"        create_site [name]")
+        print(f"        delete_site [name]")
         print(f"        change_current_site [name]")
         print(f"        print-exported-conf [name]")
         print(f"        print-global-conf")
@@ -274,6 +280,8 @@ def router():
             deploy_wireguard_configuration_routeros(getpass(f"Mot de passe du routeur du site : "))
         elif sys.argv[1] == "create_site":
             create_site(sys.argv[2])
+        elif sys.argv[1] == "delete_site":
+            delete_site(sys.argv[2])
         elif sys.argv[1] == "change_current_site" :
             set_current_sitename(sys.argv[2])
         elif sys.argv[1] == "print-global-conf":
