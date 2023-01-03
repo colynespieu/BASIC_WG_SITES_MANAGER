@@ -17,6 +17,13 @@ templates_path = base_path+"templates/"
 exports_path = base_path+"exports/"
 
 
+def get_sitenames():
+    print("Liste des sites disponibles : ")
+    for site_file in os.listdir(sites_path):
+        if (site_file.split(".")[len(site_file.split("."))-1] == "json"):
+            print(f"        {site_file[:-5]}")
+    pass
+
 def get_current_sitename():
     with open(conffile, "r") as jsonfile:
         toreturn = json.loads(jsonfile.read())["site"]
@@ -254,7 +261,7 @@ def router_site_mgn():
     pass
 
 def router():
-    listcmd = {"generate-cert":3,"delete-cert":3,"generate-conf":2,"deploy-conf":2,"print-exported-conf":3,"print-global-conf":2,"create_site":3,"delete_site":3,"change_current_site":3}
+    listcmd = {"generate-cert":3,"delete-cert":3,"generate-conf":2,"deploy-conf":2,"print-exported-conf":3,"print-global-conf":2,"create_site":3,"delete_site":3,"change_current_site":3,"get_sitenames":2}
     if len(sys.argv) < 2 or not sys.argv[1] in listcmd or not len(sys.argv)==listcmd[sys.argv[1]]:
         print(f"Usage: {__file__.split('/')[len(__file__.split('/'))-1]} OBJECT [name]")
         print(f"OBJECT :")
@@ -262,6 +269,7 @@ def router():
         print(f"        delete-cert [name]")
         print(f"        generate-conf")
         print(f"        deploy-conf")
+        print(f"        get_sitenames")
         print(f"        create_site [name]")
         print(f"        delete_site [name]")
         print(f"        change_current_site [name]")
@@ -278,6 +286,8 @@ def router():
             del_wireguard_host(sys.argv[2])
         elif sys.argv[1] == "deploy-conf":
             deploy_wireguard_configuration_routeros(getpass(f"Mot de passe du routeur du site : "))
+        elif sys.argv[1] == "get_sitenames":
+            get_sitenames()
         elif sys.argv[1] == "create_site":
             create_site(sys.argv[2])
         elif sys.argv[1] == "delete_site":
