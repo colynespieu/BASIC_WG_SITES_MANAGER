@@ -17,7 +17,7 @@ templates_path = base_path+"templates/"
 exports_path = base_path+"exports/"
 
 
-def get_sitenames():
+def print_sitenames():
     print(f"Current site : ")
     print(f"        {sitename}")
     print()
@@ -244,13 +244,13 @@ def generate_conf_files():
         with io.open(f"{exports_path}/{sitename}/{site_values['used_ips'][cert]}.conf", 'w',encoding='utf8') as f:
             f.write(template.render(value=values))
        
-def print_wireguard_exported_conf():
-    if os.path.exists(f"{exports_path}/{sitename}/{sys.argv[2]}.conf"):
-        with open(f"{exports_path}/{sitename}/{sys.argv[2]}.conf", "r") as exportedfile:
+def print_wireguard_exported_conf(arglist):
+    if os.path.exists(f"{exports_path}/{sitename}/{arglist[2]}.conf"):
+        with open(f"{exports_path}/{sitename}/{arglist[2]}.conf", "r") as exportedfile:
             conf = exportedfile.read()
         print(conf)
     else:
-        print(f"Le fichier {sys.argv[2]}.conf n'existe pas")
+        print(f"Le fichier {arglist[2]}.conf n'existe pas")
 
 def print_wireguard_values():
     site_values = json_file_read(f"{sites_path}/{sitename}.json")
@@ -264,8 +264,33 @@ def print_wireguard_values():
 def router_site_mgn():
     pass
 
-def router():
-    listcmd = {"generate-cert":3,"delete-cert":3,"generate-conf":2,"deploy-conf":2,"print-exported-conf":3,"print-global-conf":2,"create_site":3,"delete_site":3,"change_current_site":3,"get_sitenames":2}
+def router(arglist):
+    if arglist[1] == "generate-cert" :
+        generate_wireguard_cert(arglist[2])
+        add_wireguard_host(arglist[2])
+    elif arglist[1] == "generate-conf":
+        generate_conf_files()
+    elif arglist[1] == "delete-cert":
+        delete_wireguard_cert(arglist[2])
+        del_wireguard_host(arglist[2])
+    elif arglist[1] == "deploy-conf":
+        deploy_wireguard_configuration_routeros(getpass(f"Mot de passe du routeur du site : "))
+    elif arglist[1] == "print_sitenames":
+        print_sitenames()
+    elif arglist[1] == "create_site":
+        create_site(arglist[2])
+    elif arglist[1] == "delete_site":
+        delete_site(arglist[2])
+    elif arglist[1] == "change_current_site" :
+        set_current_sitename(arglist[2])
+    elif arglist[1] == "print-global-conf":
+        print_wireguard_values()
+    elif arglist[1] == "print-exported-conf":
+        print_wireguard_exported_conf(arglist)
+    
+
+def launcher():
+    listcmd = {"generate-cert":3,"delete-cert":3,"generate-conf":2,"deploy-conf":2,"print-exported-conf":3,"print-global-conf":2,"create_site":3,"delete_site":3,"change_current_site":3,"print_sitenames":2}
     if len(sys.argv) < 2 or not sys.argv[1] in listcmd or not len(sys.argv)==listcmd[sys.argv[1]]:
         print(f"Usage: {__file__.split('/')[len(__file__.split('/'))-1]} OBJECT [name]")
         print(f"OBJECT :")
@@ -273,34 +298,15 @@ def router():
         print(f"        delete-cert [name]")
         print(f"        generate-conf")
         print(f"        deploy-conf")
-        print(f"        get_sitenames")
+        print(f"        print_sitenames")
         print(f"        create_site [name]")
         print(f"        delete_site [name]")
         print(f"        change_current_site [name]")
         print(f"        print-exported-conf [name]")
         print(f"        print-global-conf")
     else:
-        if sys.argv[1] == "generate-cert" :
-            generate_wireguard_cert(sys.argv[2])
-            add_wireguard_host(sys.argv[2])
-        elif sys.argv[1] == "generate-conf":
-            generate_conf_files()
-        elif sys.argv[1] == "delete-cert":
-            delete_wireguard_cert(sys.argv[2])
-            del_wireguard_host(sys.argv[2])
-        elif sys.argv[1] == "deploy-conf":
-            deploy_wireguard_configuration_routeros(getpass(f"Mot de passe du routeur du site : "))
-        elif sys.argv[1] == "get_sitenames":
-            get_sitenames()
-        elif sys.argv[1] == "create_site":
-            create_site(sys.argv[2])
-        elif sys.argv[1] == "delete_site":
-            delete_site(sys.argv[2])
-        elif sys.argv[1] == "change_current_site" :
-            set_current_sitename(sys.argv[2])
-        elif sys.argv[1] == "print-global-conf":
-            print_wireguard_values()
-        elif sys.argv[1] == "print-exported-conf":
-            print_wireguard_exported_conf()
+        router(sys.argv)
+
+
 sitename = get_current_sitename()
-router()
+launcher()
