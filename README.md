@@ -2,7 +2,9 @@
 
 Dépendances : 
 
-apt install python3-pip
+apt install python3-pip wireguard-tools python3-simplejson
+
 pip3 install Jinja2
+
 pip3 install scp 
-apt install wireguard-tools python3-simplejson
+
