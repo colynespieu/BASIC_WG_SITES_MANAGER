@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import ipaddress
+import shutil
 from jinja2 import Environment, FileSystemLoader
 from warnings import filterwarnings
 filterwarnings("ignore")
@@ -50,9 +51,9 @@ def create_site(sitename):
 
 def delete_site(sitename):
     globals()["sitename"] = sitename
-    os.rmdir(f"{certs_path}{sitename}")
-    os.rmdir(f"{exports_path}{sitename}")
-    os.rmdir(f"{sites_path}/{sitename}.json")
+    shutil.rmtree(f"{certs_path}{sitename}")
+    shutil.rmtree(f"{exports_path}{sitename}")
+    os.remove(f"{sites_path}/{sitename}.json")
     pass
 
 def create_config_file(sitename,gconf):
@@ -264,7 +265,40 @@ def print_wireguard_values():
 def router_site_mgn():
     pass
 
+def print_option():
+    print(f"        generate-cert [name]")
+    print(f"        delete-cert [name]")
+    print(f"        generate-conf")
+    print(f"        deploy-conf")
+    print(f"        print-exported-conf [name]")
+    print(f"        print-global-conf")
+    print(f"        create_site [name]")
+    print(f"        delete_site [name]")
+    print(f"        change_current_site [name]")
+    print(f"        print_sitenames")
+
+def interactive():
+    print(f"Wireguard sites managers tools ")
+    print(f"Type \"exit\" to quit")
+    while True:
+        globals()["sitename"] = get_current_sitename()
+        print()
+        print(f"#### Site : {sitename} ####")
+        print(f"Type \"help\" for command list")
+        print()
+        cmd = str(input("Enter command : "))
+        if cmd == "help":
+            print()
+            print("Commands list :")
+            print_option()
+        elif cmd == "exit":
+            break
+        elif cmd != "interactive":
+            router([""]+cmd.split())
+
 def router(arglist):
+    if arglist[1] == "interactive" :
+        interactive()
     if arglist[1] == "generate-cert" :
         generate_wireguard_cert(arglist[2])
         add_wireguard_host(arglist[2])
@@ -287,23 +321,14 @@ def router(arglist):
         print_wireguard_values()
     elif arglist[1] == "print-exported-conf":
         print_wireguard_exported_conf(arglist)
-    
 
 def launcher():
-    listcmd = {"generate-cert":3,"delete-cert":3,"generate-conf":2,"deploy-conf":2,"print-exported-conf":3,"print-global-conf":2,"create_site":3,"delete_site":3,"change_current_site":3,"print_sitenames":2}
+    listcmd = {"generate-cert":3,"delete-cert":3,"generate-conf":2,"deploy-conf":2,"print-exported-conf":3,"print-global-conf":2,"create_site":3,"delete_site":3,"change_current_site":3,"print_sitenames":2,"interactive":2}
     if len(sys.argv) < 2 or not sys.argv[1] in listcmd or not len(sys.argv)==listcmd[sys.argv[1]]:
         print(f"Usage: {__file__.split('/')[len(__file__.split('/'))-1]} OBJECT [name]")
         print(f"OBJECT :")
-        print(f"        generate-cert [name]")
-        print(f"        delete-cert [name]")
-        print(f"        generate-conf")
-        print(f"        deploy-conf")
-        print(f"        print_sitenames")
-        print(f"        create_site [name]")
-        print(f"        delete_site [name]")
-        print(f"        change_current_site [name]")
-        print(f"        print-exported-conf [name]")
-        print(f"        print-global-conf")
+        print(f"        interactive")
+        print_option()
     else:
         router(sys.argv)
 
